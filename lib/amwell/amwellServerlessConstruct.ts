@@ -6,9 +6,6 @@ import { AttributeType, Table } from '@aws-cdk/aws-dynamodb';
 import { AccountPrincipal, PolicyDocument, PolicyStatement } from '@aws-cdk/aws-iam';
 import { AssetCode, Function, FunctionProps, Runtime } from '@aws-cdk/aws-lambda';
 
-import { AmwellApiGateway } from './amwellApiGateway'
-import { AmwellLambda } from './amwellLambda';
-
 
 export interface AmwellApiGatewayProperties {
     apiGatewayName: string;
@@ -17,29 +14,28 @@ export interface AmwellApiGatewayProperties {
 
 export interface AmwellLambdaProperties{
     lambdaName: string;
-    lambdaCode: string;
     lambdaEnvVars?: Map<string, string>;
 }
 
-export interface AmwellDynamoKey {
-    name: string;
-    type: AttributeType
-}
+// export interface AmwellDynamoKey {
+//     name: string;
+//     type: AttributeType
+// }
 
-export interface AmwellDynamoTableProperties{
-    tableName: string;
-    partitionKey: AmwellDynamoKey,
-    sortKey?: AmwellDynamoKey,
-}
+// export interface AmwellDynamoTableProperties{
+//     tableName: string;
+//     partitionKey: AmwellDynamoKey,
+//     sortKey?: AmwellDynamoKey,
+// }
 
-export interface AmwellServerlessCrudProperties {
+export interface AmwellServerlessConstructProperties {
     apiGateway: AmwellApiGatewayProperties;
     lambda: AmwellLambdaProperties;
-    dynamoTables?: AmwellDynamoTableProperties;
+    // dynamoTables?: AmwellDynamoTableProperties;
 }
 
 // TODO: this needs to be an environment variable on the pipeline
-const awsAccount = 250306898953;
+const awsAccount = 498097242612;
 const privatePolicyStatement: PolicyStatement = new PolicyStatement({
     principals: [new AccountPrincipal(awsAccount)],
     actions: [
@@ -50,19 +46,19 @@ const privatePolicyStatement: PolicyStatement = new PolicyStatement({
 })
 
 
-export class AmwellServerlessCrud extends Construct {
+export class AmwellServerlessConstruct extends Construct {
     apiGateway: LambdaRestApi;
     lambda: Function;
     dynamoTable: Table;
 
-    constructor(scope: Construct, id: string, props: AmwellServerlessCrudProperties) {
+    constructor(scope: Construct, id: string, props: AmwellServerlessConstructProperties) {
         super(scope, id);
 
         const lambdaProps: FunctionProps = {
             functionName: props.lambda.lambdaName,
-            code: new AssetCode(props.lambda.lambdaCode),
             // not configurable by the developer
-            handler: "src/main.handler",
+            code: new AssetCode('./api/dist'),
+            handler: "main.handler",
             memorySize: 512,
             runtime: Runtime.NODEJS_12_X,
         }
@@ -85,6 +81,8 @@ export class AmwellServerlessCrud extends Construct {
             binaryMediaTypes: ["appication/json"],
             cloudWatchRole: true,
         }
+
+        this.apiGateway = new LambdaRestApi(this, props.apiGateway.apiGatewayName, apiGatewayProps);
     }
 
 }

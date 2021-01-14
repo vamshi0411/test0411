@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { NestjsServerlessCdkTemplateStack } from '../lib/nestjs-serverless-cdk-template-stack';
+import { NestjsServerlessCdkStack } from '../lib/nestjs-serverless-cdk-construct-template';
 
 const app = new cdk.App();
-new NestjsServerlessCdkTemplateStack(app, 'NestjsServerlessCdkTemplateStack');
+new NestjsServerlessCdkStack(app, 'NestjsServerlessCdkTemplateStack');
