@@ -44,7 +44,7 @@ export class ExamplesController {
         return {
             ok: true,
             example: {
-                exampleName
+                exampleName: exampleName + "!"
             }
         };
     }
