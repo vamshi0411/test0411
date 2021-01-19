@@ -17,7 +17,6 @@ import {
             publicApi: true
         };
 
-
         const lambdaProps: AmwellLambdaProperties = {
             lambdaName: 'myExample-Lambda',
             lambdaCodePath: './api/dist/bin',
