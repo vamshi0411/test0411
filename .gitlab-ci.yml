@@ -1,0 +1,106 @@
+#TODO: Refactor common code like lambda build details into central-support/pipelines (https://gitlab.amwell.systems/central-support/pipelines)
+
+image: node:12.19.0-buster
+
+include:
+  # Workflow pipeline
+  - project: central-support/pipelines
+    file: services/.workflow_rules.yml
+
+variables:
+  PROJECT_DEPLOYMENT_NAME: nestjs-serverless-cdk-template
+  PROJECT_DIR: api
+  NPM_TOKEN: ${CI_JOB_TOKEN}
+  SNAPSHOT_REGISTRY: https://artifactory.americanwell.com/artifactory/api/npm/npm-snapshot-local
+  RELEASE_REGISTRY: https://artifactory.americanwell.com/artifactory/api/npm/npm-local/
+
+.npm_before_script:
+  before_script:
+    - cd api
+    - |
+      if [[ ! -f package.json ]]; then
+        echo "Unable to locate a package.json"
+        exit 1;
+      fi
+    - npm run ci
+    - NPM_PACKAGE_NAME=$(node -p "require('./package.json').name")
+    - NPM_PACKAGE_VERSION=$(node -p "require('./package.json').version")
+    - NPM_PACKAGE_TAG=$(node -p "require('./package.json').feature")
+    - echo "Wanting to publish ${NPM_PACKAGE_NAME}:${NPM_PACKAGE_VERSION} tag ${NPM_PACKAGE_TAG}"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - api/.npm/
+    - .npm/
+
+variables:
+
+stages:
+  - lint
+  - test
+  - build
+  - deploy
+
+Lint:
+  extends: .npm_before_script
+  stage: lint
+  script:
+    - echo "npm run lint"
+    - npm run lint
+  tags:
+    - dev
+
+Test:
+  extends: .npm_before_script
+  stage: test
+  script:
+    - echo "npm test"
+    - npm test
+  rules:
+    # Do not run when merging into feature/* or platinum
+    - if: $CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH =~ /^feature/ || $CI_COMMIT_BRANCH == "platinum")
+      when: never
+    # Run on all push and merge request events
+    - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
+  tags:
+    - dev
+
+Build:
+  extends: .npm_before_script
+  stage: build
+  rules:
+      # Restrict job for specified namespace and run after merging into feature/next
+      - if: $CI_COMMIT_BRANCH == "feature/next"
+  script:
+    - echo "building and packaging app..."
+    - npm run build
+    - npm run package
+    - echo "building CDK"
+    - cd ..
+    - npm ci --cache .npm --prefer-offline
+  artifacts:
+    paths:
+      - api/dist/bin/main.js
+      - node_modules/
+    expire_in: 1 day
+  tags:
+    - boston
+
+Deploy:
+  stage: deploy
+  rules:
+      # Restrict job for specified namespace and run after merging into feature/next
+      - if: $CI_COMMIT_BRANCH == "feature/next"
+  script:
+    - echo "Deploying..."
+    - npm install -g aws-cdk
+    - npm run build
+    - cdk synth
+    - npm run cdk-deploy-ci
+  environment:
+    name: dev
+    url: $DEV_ENV
+  tags:
+    - sandbox
+  
