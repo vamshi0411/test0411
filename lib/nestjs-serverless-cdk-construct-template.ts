@@ -1,30 +1,30 @@
 import * as cdk from '@aws-cdk/core';
 
 import { 
-    AmwellApiGatewayProperties,
     AmwellLambdaProperties,
+    AmwellServerlessApiGatewayProperties,
     AmwellServerlessConstruct,
     AmwellServerlessConstructProperties,
- } from './amwell/amwellServerlessConstruct';
+ } from '@aw/aw-cdk-constructs';
 
 
  export class NestjsServerlessCdkStack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-
-        const apigwProps: AmwellApiGatewayProperties = {
+        const apigwProps: AmwellServerlessApiGatewayProperties = {
             apiGatewayName: 'myExample-Api',
             publicApi: true
         };
 
-        const envVars: Map<string, string> = new Map();
-        envVars.set("KEY", "VALUE");
-        envVars.set("FOO", "BAR");
 
         const lambdaProps: AmwellLambdaProperties = {
             lambdaName: 'myExample-Lambda',
-            lambdaEnvVars: envVars
+            lambdaCodePath: './api/dist/bin',
+            lambdaEnvVars: {
+                FOO: "BAR",
+                KEY: "VAL"
+            }
         };
 
         const serverlessConstructProps: AmwellServerlessConstructProperties = {

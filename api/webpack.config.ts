@@ -8,7 +8,7 @@ const config: Configuration = {
     output: {
         filename: '[name].js',
         libraryTarget: 'commonjs2',
-        path: resolve(__dirname, 'dist'),
+        path: resolve(__dirname, 'dist/bin'),
     },
     module: {
         rules: [{ test: /\.ts$/, loader: 'ts-loader' }],

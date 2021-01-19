@@ -7,7 +7,10 @@
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build",
+    "build": "nest build && tsc webpack.config.ts",
+    "clean": "rm -rf .npm node_modules dist *.js",
+    "clean-build": "npm run clean && npm run ci && npm run build",
+    "ci": "npm ci --cache .npm --prefer-offline",
     "package": "cross-env NODE_ENV=prod npx webpack",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
