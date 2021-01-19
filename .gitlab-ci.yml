@@ -57,12 +57,6 @@ Test:
   script:
     - echo "npm test"
     - npm test
-  rules:
-    # Do not run when merging into feature/* or platinum
-    - if: $CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH =~ /^feature/ || $CI_COMMIT_BRANCH == "platinum")
-      when: never
-    # Run on all push and merge request events
-    - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
   tags:
     - dev
 
