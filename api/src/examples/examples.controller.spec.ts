@@ -15,4 +15,9 @@ describe('ExamplesController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
+
+  it('can perform a POST', async () => {
+    const result = await controller.create("myExample");
+    expect(result.created.exampleName).toBe("myExample");
+  });
 });
