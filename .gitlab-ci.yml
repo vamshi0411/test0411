@@ -6,9 +6,6 @@ include:
   # Workflow pipeline
   - project: central-support/pipelines
     file: services/.workflow_rules.yml
-  # Workflow pipeline
-  - project: central-support/pipelines
-    file: lambdas/.stages.yml
 
 variables:
   PROJECT_DEPLOYMENT_NAME: nestjs-serverless-cdk-template
@@ -36,6 +33,14 @@ cache:
   paths:
     - api/.npm/
     - .npm/
+
+variables:
+
+stages:
+  - lint
+  - test
+  - build
+  - deploy
 
 Lint:
   extends: .npm_before_script
